@@ -1,6 +1,8 @@
 # gcode-doctor
 A python program to manipulate gcode, resize, change max spindle speed, change feed rate
 
+The program use the excellent libray [pygcode](https://github.com/fragmuffin/pygcode).
+
 gdoctor.py has been written from scratch in order to change on the fly feed rate and spindle max speed on my k40 laser cutter.
 
 gdoctor.py load a gcode file, apply filters, and write to a new one
