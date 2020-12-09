@@ -1,5 +1,5 @@
 # gcode-doctor
-A python program to manipulate gcode, resize, change max spindle speed, change feed rate
+A python3 program to manipulate gcode, resize, change max spindle speed, change feed rate
 
 The program use the excellent libray [pygcode](https://github.com/fragmuffin/pygcode).
 
