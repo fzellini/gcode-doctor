@@ -3,7 +3,7 @@ import argparse
 import sys
 import pygcode
 
-from filters import feed_rate_multiply_filter
+from filters import feed_rate_multiply_filter, mindistance_filter
 from filters import feed_rate_max_filter
 from filters import spindle_speed_multiply_filter
 from filters import spindle_speed_max_filter
@@ -16,6 +16,10 @@ from commons import gCodeBlocks
 
 
 class GCodeLine(pygcode.Line):
+    def __init__(self, s):
+        self.islast = None
+        super().__init__(s)
+
     def contains(self, class_type):
         for gcode in self.block.gcodes:
             if type(gcode) == class_type:
@@ -40,6 +44,7 @@ class G01Block:
         self.xmax = sys.float_info.min
         self.ymin = sys.float_info.max
         self.ymax = sys.float_info.min
+        self.last01line = None
 
     def appendLine(self, line):
 
@@ -51,6 +56,10 @@ class G01Block:
             gcode = line.get(pygcode.gcodes.GCodeLinearMove)
 
         if gcode is not None:
+            line.islast = True
+            if self.last01line is not None:
+                self.last01line.islast = False
+            self.last01line = line
             if gcode.X is not None:
                 self.xmin = min(gcode.X, self.xmin)
                 self.xmax = max(gcode.X, self.xmax)
@@ -192,7 +201,8 @@ def write_gcode(filename):
             h.write("; {}\n".format(block))
             h.write("; </gcodedoctor>\n")
             for line in block.lines:
-                h.write("{}\n".format(line))
+                if len(line.block.gcodes) or line.comment is not None:
+                    h.write("{}\n".format(line))
 
 #            for g01block in block.g01blocks:
 #                for line in g01block.lines:
@@ -256,9 +266,15 @@ class GcodeStartYFilterAction(argparse.Action):
     def __call__(self, _parser, namespace, values, option_string=None):
         starty_filter(values)
 
+
 class GcodeResizeFilterAction(argparse.Action):
     def __call__(self, _parser, namespace, values, option_string=None):
         resize_filter(values)
+
+
+class GcodeMinDistanceFilterAction(argparse.Action):
+    def __call__(self, _parser, namespace, values, option_string=None):
+        mindistance_filter(values)
 
 
 
@@ -272,6 +288,7 @@ if __name__ == "__main__":
     parser.add_argument("--filter-start-x", action=GcodeStartXFilterAction)
     parser.add_argument("--filter-start-y", action=GcodeStartYFilterAction)
     parser.add_argument("--filter-resize", action=GcodeResizeFilterAction)
+    parser.add_argument("--filter-min-distance", action=GcodeMinDistanceFilterAction)
     parser.add_argument("--filter-feed-rate-multiply", action=GcodeFeedRateFilterMultiplyAction)
     parser.add_argument("--filter-feed-rate-max", action=GcodeFeedRateMaxFilterAction)
     parser.add_argument("--filter-spindle-speed-multiply", action=GcodeSpindleSpeedFilterMultiplyAction)

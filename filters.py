@@ -1,3 +1,5 @@
+import math
+
 import pygcode
 from commons import gCodeBlocks
 
@@ -133,6 +135,78 @@ def startx_filter(par):
                     gcode.X = gcode.X - block_to_filter.xmin + value
             except AttributeError:
                 pass
+
+
+def mindistance_filter(par):
+    """
+    modify gcodes in order that 2 consecutive 01 distance is not less than parameter
+    :param par:
+    :return:
+    """
+    if len(gCodeBlocks) == 0:
+        print("no gcode loaded: cannot apply filter")
+        return
+    block_to_filter = gCodeBlocks[-1]
+
+    try:
+        value = float(par)
+    except ValueError:
+        value = eval(par)
+
+    print("mindistance_filter: {}".format(value))
+
+    removed_codes = 0
+    total_codes = 0
+    g01blocks = block_to_filter.g01blocks
+    ng01 = len(g01blocks)
+
+    for g01block in g01blocks:
+        if g01block.size() < 4:
+            continue
+        lastX = None
+        lastY = None
+
+        linecount = len(g01block.lines)
+        first = True
+        for j, line in enumerate(g01block.lines):
+            gcode_to_remove = []
+            for i, gcode in enumerate(line.block.gcodes):
+                try:
+                    if gcode.X is not None:
+                        px = gcode.X
+                    if gcode.Y is not None:
+                        py = gcode.Y
+
+                    distance = None
+                    if not first and px is not None and py is not None:
+                        dx = px-lastX
+                        dy = py-lastY
+
+                        distance = math.sqrt(dx*dx+dy*dy)
+
+                    total_codes += 1
+                    if (distance is None) or (distance > value):
+                        # emetto
+                        lastX = px
+                        lastY = py
+                    else:
+                        # remove this code
+                        #print("remove {} from line {}".format(gcode, line))
+                        gcode_to_remove.append(gcode)
+
+                    first = False
+
+                except AttributeError:
+                    pass
+            if len(gcode_to_remove) and line.islast is not None and not line.islast:
+                removed_codes += len(gcode_to_remove)
+                new_gcode_block = []
+                for g1 in line.block.gcodes:
+                    if g1 not in gcode_to_remove:
+                        new_gcode_block.append(g1)
+                line.block.gcodes = new_gcode_block
+
+    print ("Removed {} out of {}".format(removed_codes, total_codes))
 
 
 def starty_filter(par):
