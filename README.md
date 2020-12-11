@@ -45,6 +45,9 @@ Ex. use:
 
 ```
 python3 gdoctor.py  --readgcode=../svg2gcode/out.gcode  --filter-spindle-speed-max=1000 --filter-inside-first --filter-feed-rate-max=300 --filter-resize=x40 --writegcode=out.gcode
+
+python3 gdoctor.py  --readgcode=../svg2gcode/out.gcode  --filter-spindle-speed-max=150 --filter-feed-rate-max=2000 --filter-resize=150x80  --filter-min-distance=0.1 --writegcode=out.gcode 
+
 ```
 
 
