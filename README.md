@@ -15,30 +15,17 @@ Resize filter compute xrange and yrange of the input gcode, translate to axis or
 Resize parameter is in the form of <Xmax>x<Ymax>, if both are specified, e.g. 100x100, the output gcode  will be circumscribed in a rectangle measuring 100 x 100 mm. If only a parameter is specified, e.g. 100x or x100, the given axis max value will be the given one, and the other scaled of the same amount.
 
 ```
-python3 gdoctor.py -h
+python3 gdoctor.py  -h
 usage: gdoctor.py [-h] [--readgcode READGCODE] [--writegcode WRITEGCODE]
-                  [--filter-inside-first] [--filter-start-x FILTER_START_X]
+                  [--filter-inside-first] [--filter-optimize-path]
+                  [--filter-start-x FILTER_START_X]
                   [--filter-start-y FILTER_START_Y]
                   [--filter-resize FILTER_RESIZE]
+                  [--filter-min-distance FILTER_MIN_DISTANCE]
                   [--filter-feed-rate-multiply FILTER_FEED_RATE_MULTIPLY]
                   [--filter-feed-rate-max FILTER_FEED_RATE_MAX]
                   [--filter-spindle-speed-multiply FILTER_SPINDLE_SPEED_MULTIPLY]
                   [--filter-spindle-speed-max FILTER_SPINDLE_SPEED_MAX]
-
-gcode doctor
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --readgcode READGCODE
-  --writegcode WRITEGCODE
-  --filter-inside-first
-  --filter-start-x FILTER_START_X
-  --filter-start-y FILTER_START_Y
-  --filter-resize FILTER_RESIZE
-  --filter-feed-rate-multiply FILTER_FEED_RATE_MULTIPLY
-  --filter-feed-rate-max FILTER_FEED_RATE_MAX
-  --filter-spindle-speed-multiply FILTER_SPINDLE_SPEED_MULTIPLY
-  --filter-spindle-speed-max FILTER_SPINDLE_SPEED_MAX
 ```
 
 Ex. use:
