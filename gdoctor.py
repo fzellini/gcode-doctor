@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import argparse
+import math
 import sys
 import pygcode
 
-from filters import feed_rate_multiply_filter, mindistance_filter
+from filters import feed_rate_multiply_filter, mindistance_filter, optimize_path_filter
 from filters import feed_rate_max_filter
 from filters import spindle_speed_multiply_filter
 from filters import spindle_speed_max_filter
@@ -44,7 +45,12 @@ class G01Block:
         self.xmax = sys.float_info.min
         self.ymin = sys.float_info.max
         self.ymax = sys.float_info.min
+        self.startx = None
+        self.starty = None
+        self.endx = None
+        self.endy = None
         self.last01line = None
+        self.first = True
 
     def appendLine(self, line):
 
@@ -68,6 +74,16 @@ class G01Block:
                 self.ymin = min(gcode.Y, self.ymin)
                 self.ymax = max(gcode.Y, self.ymax)
 
+            if (gcode.X is not None) and (gcode.Y is not None):
+                if self.first:
+                    self.startx = gcode.X
+                    self.starty = gcode.Y
+                    self.first = False
+                else:
+                    self.endx = gcode.X
+                    self.endy = gcode.Y
+
+
         self.lines.append(line)
 
     def size(self):
@@ -86,6 +102,51 @@ class G01Block:
             return False
 
         return True
+
+    def distanceToStart(self, other_block):
+        if (not self.isvalid()) or (not other_block.isvalid()):
+            return None
+        dx = self.endx-other_block.startx
+        dy = self.endy-other_block.endy
+        distance = math.sqrt(dx*dx+dy*dy)
+        return distance
+
+    def shortestPathToStart(self, block_array):
+        """
+        return the index of the shortest
+        :param block_array:
+        :return:
+        """
+        d = sys.float_info.max
+        min_i = None
+        for i, block in enumerate(block_array):
+            dn = self.distanceToStart(block)
+            if dn < d:
+                d = dn
+                min_i = i
+        return min_i
+
+    def shortestPathToStart2(self, block_array, start_index):
+        """
+        return the index of the shortest
+        :param block_array:
+        :param start_index:
+        :return:
+        """
+        d = sys.float_info.max
+        min_i = None
+        ln = len(block_array)
+        i = start_index
+        while i < ln:
+            dn = self.distanceToStart(block_array[i])
+
+            if dn is not None and dn < d:
+                d = dn
+                min_i = i
+            i += 1
+        return min_i
+
+
 
     def contains(self, other_block):
         """
@@ -277,6 +338,11 @@ class GcodeMinDistanceFilterAction(argparse.Action):
         mindistance_filter(values)
 
 
+class GcodeOptimizePathFilterAction(argparse.Action):
+    def __call__(self, _parser, namespace, values, option_string=None):
+        optimize_path_filter()
+
+
 
 if __name__ == "__main__":
 
@@ -285,6 +351,7 @@ if __name__ == "__main__":
     parser.add_argument("--readgcode", action=GcodeReadAction)
     parser.add_argument("--writegcode", action=GcodeWriteAction)
     parser.add_argument("--filter-inside-first", nargs=0, action=GcodeInsideFirstFilterAction)
+    parser.add_argument("--filter-optimize-path", nargs=0, action=GcodeOptimizePathFilterAction)
     parser.add_argument("--filter-start-x", action=GcodeStartXFilterAction)
     parser.add_argument("--filter-start-y", action=GcodeStartYFilterAction)
     parser.add_argument("--filter-resize", action=GcodeResizeFilterAction)

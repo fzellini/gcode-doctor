@@ -264,6 +264,8 @@ def resize_filter(par):
     # determine xscale and yscale
     xsize = block_to_filter.xmax-block_to_filter.xmin
     ysize = block_to_filter.ymax-block_to_filter.ymin
+    # print("block_to_filter {}".format(block_to_filter))
+
     factor = 1
     if yb is None:
         # scale only x
@@ -320,3 +322,37 @@ def inside_first_filter():
             block_to_filter.lines.append(line)
 
 
+def optimize_path_filter():
+    """
+    organize gcode groups trying to minimize path
+    :return:
+    """
+    print("optimize_path_filter...")
+    if len(gCodeBlocks) == 0:
+        print("no gcode loaded: cannot apply filter")
+        return
+    block_to_filter = gCodeBlocks[-1]
+
+    g01blocks = block_to_filter.g01blocks
+    ng01 = len(g01blocks)
+
+    print(block_to_filter)
+
+    for ri in range(ng01-1):
+        if ri % 10 == 0:
+            print(ri, end='\r')
+        next_block_index = ri + 1
+        idx_shortest = g01blocks[ri].shortestPathToStart2(g01blocks, next_block_index)
+        if idx_shortest is not None:
+            if idx_shortest != next_block_index:
+                g01blocks[next_block_index], g01blocks[idx_shortest] = \
+                    g01blocks[idx_shortest], g01blocks[next_block_index]
+
+    print()
+    # rearrange original lines
+    block_to_filter.lines = []
+    for g01block in block_to_filter.g01blocks:
+        for line in g01block.lines:
+            block_to_filter.lines.append(line)
+
+    print("optimize_path_filter done.")
