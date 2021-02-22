@@ -309,9 +309,11 @@ def inside_first_filter():
     while True:
         swp = False
         for i in range(ng01-1):
-            if g01blocks[i].contains(g01blocks[i+1]):
-                g01blocks[i], g01blocks[i+1] = g01blocks[i+1], g01blocks[i]
-                swp = True
+            for j in range(i+1, ng01):
+                if g01blocks[i].contains(g01blocks[j]):
+                    g01blocks[i], g01blocks[j] = g01blocks[j], g01blocks[i]
+                    swp = True
+
         if not swp:
             break
 

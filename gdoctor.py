@@ -83,7 +83,6 @@ class G01Block:
                     self.endx = gcode.X
                     self.endy = gcode.Y
 
-
         self.lines.append(line)
 
     def size(self):
@@ -145,8 +144,6 @@ class G01Block:
                 min_i = i
             i += 1
         return min_i
-
-
 
     def contains(self, other_block):
         """
@@ -266,6 +263,7 @@ def write_gcode(filename):
                     h.write("{}\n".format(line))
 
 #            for g01block in block.g01blocks:
+#                h.write("; {}\n".format(g01block))
 #                for line in g01block.lines:
 #                    h.write("{}\n".format(line))
 
